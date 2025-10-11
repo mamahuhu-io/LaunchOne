@@ -268,7 +268,7 @@ This project was developed with assistance from:
 
 - Claude Code
 - Cursor
-- - Cursor Cli
+- Cursor Cli
 
 
 
