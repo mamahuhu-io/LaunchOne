@@ -1,0 +1,20 @@
+# Xcode
+*.xcuserstate
+xcuserdata/
+*.xcuserdatad
+
+# Build artifacts
+build/
+DerivedData/
+target/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Archives
+*.xcarchive
+
+# Breakpoints
+*.xcbkptlist
