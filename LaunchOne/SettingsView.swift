@@ -924,6 +924,31 @@ struct SettingsView: View {
             }
 
             VStack(alignment: .leading, spacing: 12) {
+                Text(appStore.localized(.startAtLoginTitle))
+                    .font(.headline)
+
+                HStack {
+                    Text(appStore.localized(.startAtLoginToggle))
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { appStore.startAtLoginSilent },
+                        set: { newValue in
+                            appStore.setStartAtLoginSilent(newValue) { hint in
+                                iconImportError = hint
+                            }
+                        }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .disabled(appStore.isTogglingLoginItem)
+                }
+
+                Text(appStore.localized(.startAtLoginDescription))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
                 Text(appStore.localized(.customIconTitle))
                     .font(.headline)
                 HStack(spacing: 16) {

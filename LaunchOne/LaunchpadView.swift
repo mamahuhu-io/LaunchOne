@@ -175,6 +175,17 @@ struct LaunchpadView: View {
         )
         guard !query.isEmpty else { return appStore.items }
 
+        // Normalize query for pinyin matching: lowercase, strip diacritics, remove spaces
+        func normalizedQuery(_ q: String) -> (raw: String, folded: String) {
+            let raw = q
+            let lowered = q.lowercased()
+            let mutable = NSMutableString(string: lowered)
+            CFStringTransform(mutable, nil, kCFStringTransformStripDiacritics, false)
+            let folded = String(mutable).replacingOccurrences(of: " ", with: "")
+            return (raw, folded)
+        }
+        let q = normalizedQuery(query)
+
         var result: [LaunchpadItem] = []
         var searchedApps = Set<String>()  // For deduplication; avoid displaying the same app twice
 
@@ -182,7 +193,9 @@ struct LaunchpadView: View {
         for item in appStore.items {
             switch item {
             case .app(let app):
-                if app.name.localizedCaseInsensitiveContains(query) {
+                let nameMatch = app.name.localizedCaseInsensitiveContains(query)
+                let pinyinMatch = app.pinyinFull.contains(q.folded) || app.pinyinAcronym.contains(q.folded)
+                if nameMatch || pinyinMatch {
                     result.append(.app(app))
                     searchedApps.insert(app.url.path)
                 }
@@ -194,7 +207,9 @@ struct LaunchpadView: View {
 
                 // Check apps inside the folder; if matched, extract and show directly
                 let matchingApps = folder.apps.filter { app in
-                    app.name.localizedCaseInsensitiveContains(query)
+                    let nameMatch = app.name.localizedCaseInsensitiveContains(query)
+                    let pinyinMatch = app.pinyinFull.contains(q.folded) || app.pinyinAcronym.contains(q.folded)
+                    return nameMatch || pinyinMatch
                 }
                 for app in matchingApps {
                     if !searchedApps.contains(app.url.path) {
@@ -218,13 +233,28 @@ struct LaunchpadView: View {
             }
         }
 
-        // Relevance sorting: exact match > prefix > substring, then alphabetical, then original order
-        func score(for name: String, query q: String) -> Int {
+        // Relevance sorting (apps): consider name and pinyin
+        // exact > prefix > substring on name, then same tiers on pinyinFull, then acronym hit
+        func scoreForApp(_ app: AppInfo) -> Int {
+            let lowerName = app.name.lowercased()
+            let lowerQ = query.lowercased()
+            if lowerName == lowerQ { return 6 }
+            if lowerName.hasPrefix(lowerQ) { return 5 }
+            if lowerName.contains(lowerQ) { return 4 }
+            if app.pinyinFull == q.folded { return 3 }
+            if app.pinyinFull.hasPrefix(q.folded) { return 2 }
+            if app.pinyinFull.contains(q.folded) { return 1 }
+            if app.pinyinAcronym.contains(q.folded) { return 1 }
+            return 0
+        }
+
+        // Relevance sorting (folders): only name
+        func scoreForName(_ name: String, q: String) -> Int {
             let lowerName = name.lowercased()
             let lowerQ = q.lowercased()
-            if lowerName == lowerQ { return 3 }  // exact
-            if lowerName.hasPrefix(lowerQ) { return 2 }  // prefix
-            if lowerName.contains(lowerQ) { return 1 }  // substring
+            if lowerName == lowerQ { return 3 }
+            if lowerName.hasPrefix(lowerQ) { return 2 }
+            if lowerName.contains(lowerQ) { return 1 }
             return 0
         }
 
@@ -250,12 +280,12 @@ struct LaunchpadView: View {
             func key(_ item: LaunchpadItem) -> (Int, String, Int) {
                 switch item {
                 case .app(let app):
-                    let s = score(for: app.name, query: query)
+                    let s = scoreForApp(app)
                     let alpha = app.name.lowercased()
                     let orig = originalIndex[app.url.path] ?? Int.max
                     return (s, alpha, orig)
                 case .folder(let folder):
-                    let s = score(for: folder.name, query: query)
+                    let s = scoreForName(folder.name, q: query)
                     let alpha = folder.name.lowercased()
                     let orig = originalIndex["folder:\\(folder.id)"] ?? Int.max
                     return (s, alpha, orig)

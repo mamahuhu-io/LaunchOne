@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 import Carbon
 import Carbon.HIToolbox
 import Combine
@@ -1027,6 +1028,55 @@ final class AppStore: ObservableObject {
             UserDefaults.standard.set(showInDock, forKey: Self.showInDockKey)
             // Apply Dock visibility immediately
             updateDockVisibility()
+        }
+    }
+
+    // MARK: - Start at login (silent)
+    private static let startAtLoginKey = "LaunchOne.startAtLoginSilent"
+    @Published var startAtLoginSilent: Bool = false
+    @Published var isTogglingLoginItem: Bool = false
+
+    func loadLoginItemPreference() {
+        // Initial UI reflects actual system status if available; otherwise fallback to stored preference
+        if #available(macOS 14.0, *) {
+            startAtLoginSilent = (SMAppService.mainApp.status == .enabled)
+        } else {
+            startAtLoginSilent = UserDefaults.standard.bool(forKey: Self.startAtLoginKey)
+        }
+    }
+
+    func syncLoginItemStatus() {
+        guard #available(macOS 14.0, *) else { return }
+        let enabled = (SMAppService.mainApp.status == .enabled)
+        if startAtLoginSilent != enabled && !isTogglingLoginItem {
+            startAtLoginSilent = enabled
+        }
+    }
+
+    func setStartAtLoginSilent(_ enable: Bool, onError: @escaping (String) -> Void) {
+        guard #available(macOS 14.0, *) else {
+            startAtLoginSilent = enable
+            UserDefaults.standard.set(enable, forKey: Self.startAtLoginKey)
+            return
+        }
+        guard !isTogglingLoginItem else { return }
+        isTogglingLoginItem = true
+        let previous = startAtLoginSilent
+        startAtLoginSilent = enable
+        DispatchQueue.main.async {
+            do {
+                if enable {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+                UserDefaults.standard.set(enable, forKey: Self.startAtLoginKey)
+            } catch {
+                // Roll back UI state and show hint
+                self.startAtLoginSilent = previous
+                onError(self.localized(.loginItemPermissionHint))
+            }
+            self.isTogglingLoginItem = false
         }
     }
 

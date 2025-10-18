@@ -2,6 +2,7 @@ import AppKit
 import Carbon
 import Carbon.HIToolbox
 import Combine
+import ApplicationServices
 import QuartzCore
 import SwiftData
 import SwiftUI
@@ -49,21 +50,51 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     private var pendingHide = false
     var isUpdatingDockPolicy = false
     var isShowingModalPanel = false
+    private var loginStatusTimer: Timer?
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         Self.shared = self
-        // Determine activation policy based on user settings before any window is created or activated to avoid flicker at launch
-        if appStore.showInDock {
-            NSApplication.shared.setActivationPolicy(.regular)
-        } else {
-            NSApplication.shared.setActivationPolicy(.accessory)
-        }
+        appStore.loadLoginItemPreference()
+        // Default to accessory; we'll switch to regular only when showing UI
+        NSApplication.shared.setActivationPolicy(.accessory)
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         Self.shared = self
         appStore.syncGlobalHotKeyRegistration()
 
+        // Determine if launched as login item (silent path)
+        let launchedAsLoginItem: Bool = {
+            if let event = NSAppleEventManager.shared().currentAppleEvent,
+               event.eventID == kAEOpenApplication,
+               let flag = event.paramDescriptor(forKeyword: keyAELaunchedAsLogInItem)?.booleanValue,
+               flag {
+                return true
+            }
+            return false
+        }()
+
+        if launchedAsLoginItem && appStore.startAtLoginSilent {
+            // Minimal initialization only; no windows, no activation
+            appStore.performInitialScanIfNeeded()
+            appStore.startAutoRescan()
+            bindAppearancePreference()
+            bindSettingsWindow()
+            setupLanguageChangeObserver()
+            loginStatusTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+                self?.appStore.syncLoginItemStatus()
+            }
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.applyAppearancePreference(self.appStore.appearancePreference)
+            }
+            return
+        }
+
+        // Interactive path: build UI
+        if appStore.showInDock {
+            NSApplication.shared.setActivationPolicy(.regular)
+        }
         setupWindow()
         setupSettingsWindow()
         appStore.performInitialScanIfNeeded()
@@ -82,14 +113,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
         DispatchQueue.main.async {
             self.setupCustomMenu()
         }
+        loginStatusTimer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true) { [weak self] _ in
+            self?.appStore.syncLoginItemStatus()
+        }
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
-        // Reassert activation policy idempotently when re-activated to prevent system from reverting it in certain paths
+        // Maintain accessory unless we intend to show UI
         if appStore.showInDock {
             NSApplication.shared.setActivationPolicy(.regular)
-        } else {
-            NSApplication.shared.setActivationPolicy(.accessory)
         }
     }
 
@@ -466,6 +498,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate,
     }
 
     func toggleWindow() {
+        if window == nil {
+            NSApplication.shared.setActivationPolicy(.regular)
+            setupWindow()
+            setupSettingsWindow()
+        }
         if windowIsVisible {
             hideWindow()
         } else {

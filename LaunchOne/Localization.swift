@@ -177,6 +177,12 @@ enum LocalizationKey: String {
     case tryAgain
     case autoCheckForUpdates
     case versionParseError
+
+    // Login item (silent) related
+    case startAtLoginTitle
+    case startAtLoginToggle
+    case startAtLoginDescription
+    case loginItemPermissionHint
 }
 
 final class LocalizationManager {
@@ -327,6 +333,12 @@ final class LocalizationManager {
                 .tryAgain: "Try Again",
                 .autoCheckForUpdates: "Check for updates automatically",
                 .versionParseError: "Version parsing error",
+
+                // Login item (silent)
+                .startAtLoginTitle: "Start at login (silent)",
+                .startAtLoginToggle: "Enable",
+                .startAtLoginDescription: "Launch on login without showing any UI. You can bring up the window later via the global shortcut.",
+                .loginItemPermissionHint: "Please allow ‘LaunchOne’ to run in the background in System Settings → Login Items.",
             ],
             .vietnamese: [
                 .noAppsFound: "Không tìm thấy ứng dụng nào",
@@ -470,6 +482,12 @@ final class LocalizationManager {
                 .tryAgain: "Thử lại",
                 .autoCheckForUpdates: "Tự động kiểm tra cập nhật",
                 .versionParseError: "Lỗi phân tích phiên bản",
+
+                // Login item (silent)
+                .startAtLoginTitle: "Khởi động cùng hệ thống (ẩn)",
+                .startAtLoginToggle: "Bật",
+                .startAtLoginDescription: "Tự chạy khi đăng nhập mà không hiển thị giao diện. Dùng phím tắt toàn cục để mở khi cần.",
+                .loginItemPermissionHint: "Hãy cho phép ‘LaunchOne’ chạy nền tại Cài đặt hệ thống → Mục đăng nhập.",
             ],
             .simplifiedChinese: [
                 .noAppsFound: "未找到任何应用",
@@ -597,6 +615,12 @@ final class LocalizationManager {
                 .tryAgain: "重试",
                 .autoCheckForUpdates: "自动检查更新",
                 .versionParseError: "版本解析错误",
+
+                // Login item (silent)
+                .startAtLoginTitle: "开机自启（静默）",
+                .startAtLoginToggle: "启用",
+                .startAtLoginDescription: "登录时启动且不显示界面。可通过全局快捷键在需要时唤起窗口。",
+                .loginItemPermissionHint: "请在 系统设置 → 登录项 中允许 ‘LaunchOne’ 在后台运行。",
             ],
             .japanese: [
                 .noAppsFound: "アプリが見つかりません",
@@ -730,6 +754,12 @@ final class LocalizationManager {
                 .tryAgain: "再試行",
                 .autoCheckForUpdates: "自動でアップデートを確認",
                 .versionParseError: "バージョン解析エラー",
+
+                // Login item (silent)
+                .startAtLoginTitle: "ログイン時に起動（サイレント）",
+                .startAtLoginToggle: "有効化",
+                .startAtLoginDescription: "ログイン時にUIを表示せずに起動します。必要になったらグローバルショートカットでウィンドウを開けます。",
+                .loginItemPermissionHint: "システム設定 → ログイン項目 で ‘LaunchOne’ のバックグラウンド実行を許可してください。",
             ],
             .korean: [
                 .noAppsFound: "앱을 찾을 수 없어요",
@@ -863,6 +893,12 @@ final class LocalizationManager {
                 .tryAgain: "다시 시도하기",
                 .autoCheckForUpdates: "업데이트 자동 확인",
                 .versionParseError: "버전 분석 오류",
+
+                // Login item (silent)
+                .startAtLoginTitle: "로그인 시 자동 시작(조용히)",
+                .startAtLoginToggle: "켜기",
+                .startAtLoginDescription: "로그인할 때 UI 없이 실행합니다. 필요 시 전역 단축키로 창을 띄울 수 있어요.",
+                .loginItemPermissionHint: "시스템 설정 → 로그인 항목에서 ‘LaunchOne’의 백그라운드 실행을 허용하세요.",
             ],
             .french: [
                 .noAppsFound: "Aucune application trouvée",
@@ -1003,6 +1039,12 @@ final class LocalizationManager {
                 .tryAgain: "Réessayer",
                 .autoCheckForUpdates: "Vérification automatique",
                 .versionParseError: "Erreur d'analyse de version",
+
+                // Login item (silent)
+                .startAtLoginTitle: "Lancer à l’ouverture de session (silencieux)",
+                .startAtLoginToggle: "Activer",
+                .startAtLoginDescription: "Lance l’app au démarrage sans afficher d’UI. Utilisez le raccourci global pour afficher la fenêtre.",
+                .loginItemPermissionHint: "Autorisez ‘LaunchOne’ à s’exécuter en arrière-plan dans Réglages système → Ouverture.",
             ],
             .spanish: [
                 .noAppsFound: "No se encontraron apps",
@@ -1146,6 +1188,12 @@ final class LocalizationManager {
                 .tryAgain: "Intentar de nuevo",
                 .autoCheckForUpdates: "Buscar actualizaciones automáticamente",
                 .versionParseError: "Error de análisis de versión",
+
+                // Login item (silent)
+                .startAtLoginTitle: "Iniciar al iniciar sesión (silencioso)",
+                .startAtLoginToggle: "Activar",
+                .startAtLoginDescription: "Se inicia al iniciar sesión sin mostrar interfaz. Usa el atajo global para mostrar la ventana cuando lo necesites.",
+                .loginItemPermissionHint: "Permite que ‘LaunchOne’ se ejecute en segundo plano en Ajustes del sistema → Ítems de inicio.",
             ],
             .german: [
                 .noAppsFound: "Keine Apps gefunden",
@@ -1291,6 +1339,12 @@ final class LocalizationManager {
                 .tryAgain: "Erneut versuchen",
                 .autoCheckForUpdates: "Automatisch nach Updates suchen",
                 .versionParseError: "Versions-Parsing-Fehler",
+
+                // Login item (silent)
+                .startAtLoginTitle: "Beim Anmelden starten (still)",
+                .startAtLoginToggle: "Aktivieren",
+                .startAtLoginDescription: "Beim Anmelden ohne UI starten. Das Fenster kann später über den globalen Kurzbefehl geöffnet werden.",
+                .loginItemPermissionHint: "Erlaube ‘LaunchOne’ im Hintergrund auszuführen: Systemeinstellungen → Anmeldeobjekte.",
             ],
             .russian: [
                 .noAppsFound: "Приложения не найдены",
@@ -1435,6 +1489,12 @@ final class LocalizationManager {
                 .tryAgain: "Попробовать снова",
                 .autoCheckForUpdates: "Автоматически проверять обновления",
                 .versionParseError: "Ошибка разбора версии",
+
+                // Login item (silent)
+                .startAtLoginTitle: "Запуск при входе (без UI)",
+                .startAtLoginToggle: "Включить",
+                .startAtLoginDescription: "Запускаться при входе в систему без интерфейса. Откройте окно по глобальному сочетанию.",
+                .loginItemPermissionHint: "Разрешите ‘LaunchOne’ работу в фоне: Системные настройки → Объекты входа.",
             ],
         ]
 

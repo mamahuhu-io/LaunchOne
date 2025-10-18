@@ -6,6 +6,8 @@ struct AppInfo: Identifiable, Equatable, Hashable {
     let name: String
     let icon: NSImage
     let url: URL
+    let pinyinFull: String
+    let pinyinAcronym: String
 
     // Use the application path as a stable unique identifier
     var id: String { url.path }
@@ -203,4 +205,34 @@ struct AppInfo: Identifiable, Equatable, Hashable {
         return Locale.preferredLanguages
     }
 
+    // MARK: - Pinyin utilities and designated initializer
+
+    init(name: String, icon: NSImage, url: URL) {
+        self.name = name
+        self.icon = icon
+        self.url = url
+        let variants = Self.makePinyinVariants(from: name)
+        self.pinyinFull = variants.full
+        self.pinyinAcronym = variants.acronym
+    }
+
+    private static func makePinyinVariants(from original: String) -> (full: String, acronym: String) {
+        let lowered = original.lowercased()
+
+        // Transform to Latin and strip diacritics (tones)
+        let mutable = NSMutableString(string: lowered)
+        CFStringTransform(mutable, nil, kCFStringTransformToLatin, false)
+        CFStringTransform(mutable, nil, kCFStringTransformStripDiacritics, false)
+
+        let latin = String(mutable)
+
+        // Build full (remove spaces) and acronym (first letters of tokens)
+        let tokens = latin.split(whereSeparator: { $0.isWhitespace })
+        let full = tokens.joined()
+        let acronym = String(tokens.compactMap { $0.first })
+
+        // Remove any remaining spaces and lowercase just in case
+        return (full.replacingOccurrences(of: " ", with: "").lowercased(),
+                acronym.replacingOccurrences(of: " ", with: "").lowercased())
+    }
 }
